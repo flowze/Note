@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Мои заметки | NoteApp</title>
+  <!-- Подключаем кастомный CSS -->
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <!-- Подключаем Bootstrap для удобной верстки -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<!-- Шапка с фоновым изображением -->
+<header class="bg-dark text-white py-5" style="background: url('/images/header-bg.jpg') no-repeat center center; background-size: cover;">
+  <div class="container text-center">
+    <h1 class="display-4">Добро пожаловать в NoteApp</h1>
+    <p class="lead">Управляйте своими заметками легко и стильно</p>
+    <a href="/notes/new" class="btn btn-primary btn-lg mt-3">Новая заметка</a>
+  </div>
+</header>
+
+<!-- Основной контент: список заметок -->
+<main class="container my-5">
+  <div th:if="${notes != null and not #lists.isEmpty(notes)}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <!-- Перебор заметок -->
+    <div class="col" th:each="note : ${notes}">
+      <div class="card h-100 shadow-sm border-0">
+        <!-- Если у заметки есть изображения, выводим карусель -->
+        <div th:if="${note.imageUrl != null and not #lists.isEmpty(note.imageUrl)}" class="carousel slide" th:id="'carousel-' + ${note.id}" data-bs-ride="carousel">
+          <div class="carousel-inner">
+            <div class="carousel-item" th:each="img, stat : ${note.imageUrl}" th:classappend="${stat.index == 0} ? ' active'">
+              <img th:src="@{${img}}" class="d-block w-100" alt="Изображение заметки" style="max-height: 220px; object-fit: cover;">
+            </div>
+          </div>
+          <button class="carousel-control-prev" type="button" th:data-bs-target="'#carousel-' + ${note.id}" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Предыдущее</span>
+          </button>
+          <button class="carousel-control-next" type="button" th:data-bs-target="'#carousel-' + ${note.id}" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Следующее</span>
+          </button>
+        </div>
+        <!-- Контент заметки -->
+        <div class="card-body">
+          <h5 class="card-title" th:text="${note.title}">Заголовок заметки</h5>
+          <p class="card-text" th:text="${#strings.abbreviate(note.content, 100)}">
+            Краткое содержание заметки...
+          </p>
+        </div>
+        <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+          <small class="text-muted" th:text="${#dates.format(note.createdAt, 'dd MMM yyyy HH:mm')}">Дата создания</small>
+          <div>
+            <a th:href="@{/notes/edit/{id}(id=${note.id})}" class="btn btn-sm btn-outline-primary">Редактировать</a>
+            <a th:href="@{/notes/delete/{id}(id=${note.id})}" class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('Вы уверены, что хотите удалить эту заметку?');">Удалить</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Если заметок нет -->
+  <div th:if="${notes == null or #lists.isEmpty(notes)}" class="alert alert-info text-center">
+    <h4>У вас пока нет заметок</h4>
+    <p>Создайте первую заметку и начните управлять своими идеями!</p>
+    <a href="/notes/new" class="btn btn-success">Добавить заметку</a>
+  </div>
+</main>
+
+<!-- Футер -->
+<footer class="bg-dark text-white py-4">
+  <div class="container text-center">
+    <p class="mb-0">© 2025 NoteApp. Все права защищены.</p>
+    <p class="small">Создано с любовью к чистому коду</p>
+  </div>
+</footer>
+
+<!-- Подключение JavaScript -->
+<script th:src="@{/js/app.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Пример простого скрипта -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Страница заметок загружена!');
+    });
+</script>
+</body>
+</html>

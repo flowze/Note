@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои заметки | NoteApp</title>
+    <!-- Подключаем кастомный CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Подключаем Bootstrap для удобной верстки -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<!-- Навигационная панель -->
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">NoteApp</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Переключить навигацию">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/notes}">Заметки</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/logout}">Выход</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Мои заметки</h1>
+        <a href="/notes/new" class="btn btn-primary">Новая заметка</a>
+    </div>
+
+    <div th:if="${notes != null and not #lists.isEmpty(notes)}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id ="notes-list">
+
+        <div class="col" th:each="note : ${notes}" th:attr="data-id=${note.position}">
+            <div class="card h-100 shadow-sm">
+                <div th:if="${note.imageUrls != null and not #lists.isEmpty(note.imageUrls)}" class="carousel slide" th:id="'carousel-' + ${note.id}" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" th:each="img, iterStat : ${note.imageUrls}" th:classappend="${iterStat.first} ? ' active'">
+                            <img th:src="@{${img}}"
+                                 class="d-block w-100 img-fluid cursor-zoom"
+                                 alt="Изображение заметки"
+                                 style="max-height: 200px; object-fit: contain;"
+                                 onclick="showFullImage(this.src)">
+                        </div>
+                    </div>
+
+                    <button class="carousel-control-prev" type="button" th:data-bs-target="'#carousel-' + ${note.id}" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Предыдущее</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" th:data-bs-target="'#carousel-' + ${note.id}" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Следующее</span>
+                    </button>
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${note.title}">Заголовок заметки</h5>
+                    <p class="card-text" th:text="${#strings.abbreviate(note.content, 100)}">
+                        Краткое содержание заметки...
+                    </p>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <div>
+                        <a th:href="@{/notes/edit/{id}(id=${note.id})}" class="btn btn-sm btn-outline-primary">Редактировать</a>
+                        <form th:action="@{/notes/delete/{id}(id=${note.id})}" method="post">
+                            <button th:href="@{/notes}" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Вы уверены, что хотите удалить эту заметку?');">Удалить</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div >
+
+    </div>
+
+    <div th:if="${notes == null or #lists.isEmpty(notes)}" class="alert alert-info text-center mt-4">
+        <p>У вас пока нет заметок. Создайте первую!</p>
+        <a href="/notes/new" class="btn btn-success">Добавить заметку</a>
+    </div>
+</main>
+
+<footer class="bg-light py-3 mt-5">
+    <div class="container text-center">
+        <p class="mb-0">© 2025 NoteApp. Все права защищены.</p>
+    </div>
+</footer>
+
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">Просмотр изображения</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="" class="img-fluid" id="fullSizeImage"
+                     style="max-height: 80vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
+
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const el = document.getElementById('notes-list');
+        new Sortable(el, {
+            animation: 150,
+            onEnd: function(evt) {
+
+                let orderedIds = [];
+                const cards = el.querySelectorAll('.col');
+                cards.forEach(card => {
+                    orderedIds.push(card.getAttribute('data-id'));
+                });
+
+
+                fetch('/notes/reorder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({orderedIds}),
+                }).then(response => response.json())
+                  .then(data => {
+                      console.log('Заметки переупорядочены на сервере:', data);
+                  })
+                  .catch(error => {
+                      console.error('Ошибка при отправке данных:', error);
+                  });
+            }
+        });
+    });
+    function showFullImage(src) {
+        const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+        document.getElementById('fullSizeImage').src = src;
+        modal.show();
+    }
+</script>
+</body>
+</html>

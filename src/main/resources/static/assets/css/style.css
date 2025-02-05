@@ -1,0 +1,79 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+#hero {
+    background: url('/images/hero-background.jpg') no-repeat center center;
+    background-size: cover;
+    color: #fff;
+    padding: 80px 20px;
+}
+
+#hero h1 {
+    font-size: 3rem;
+}
+
+#features .card {
+    transition: transform 0.3s;
+}
+
+#features .card:hover {
+    transform: scale(1.05);
+}
+
+/* Стили для карточек заметок */
+.card {
+    width: 100% !important;  /* Карточка занимает всю ширину родительского элемента */
+    min-height: 300px;        /* Минимальная высота карточки */
+    height: auto;             /* Автоматическая высота для адаптивности */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 0.5rem;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+/* Дополнительные стили для навигации и футера */
+footer {
+    font-size: 0.9rem;
+}
+
+/* Дополнительные стили для кнопок */
+.btn-outline-primary,
+.btn-outline-danger {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.cursor-zoom {
+    cursor: zoom-in;
+    transition: transform 0.2s;
+}
+
+.cursor-zoom:hover {
+    transform: scale(1.02);
+}
+
+/* Стили для контейнера заметок.
+   Если используете Bootstrap классы (row, row-cols-*, g-4), то не нужно переопределять display */
