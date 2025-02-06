@@ -44,7 +44,6 @@ public class NoteService {
     @Transactional
     public void updateNote(int id, Note updatedNote, List<MultipartFile> files) {
         Note existingNote = getOrElseThrow(id);
-
         existingNote.setTitle(updatedNote.getTitle());
         existingNote.setContent(updatedNote.getContent());
         existingNote.getImageUrls().addAll(fileStorageService.saveFiles(files, existingNote.getUser().getId()));

@@ -23,6 +23,6 @@ public class CustomErrorController implements ErrorController {
         if (statusCode.equals(this.notFoundStatus)) {
             return "redirect:/";
         }
-        return "error";
+        return "redirect:/";
     }
 }
