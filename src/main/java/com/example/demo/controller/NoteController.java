@@ -1,9 +1,11 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Note;
+import com.example.demo.model.user.User;
 import com.example.demo.payload.request.ReorderRequest;
 import com.example.demo.security.service.UserDetailsImpl;
 import com.example.demo.service.FileStorageService;
+import com.example.demo.service.FolderService;
 import com.example.demo.service.NoteService;
 import com.example.demo.service.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -31,12 +33,15 @@ public class NoteController {
     private final NoteService noteService;
 
     private final UserService userService;
+    private final FolderService folderService;
     @Value("${file.upload-dir}")
     private String UPLOAD_DIR;
 
     @GetMapping("")
     public String pict(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model){
-        model.addAttribute("notes", noteService.findByUser(userService.getCurrentUser()));
+        User currentUser = userService.getCurrentUser();
+        model.addAttribute("notes", noteService.findByUser(currentUser));
+        model.addAttribute("folders", folderService.findByUser(currentUser));
         return "notes";
     }
 
@@ -93,4 +98,5 @@ public class NoteController {
         noteService.updateOrder(orderedIds);
         return ResponseEntity.ok("Порядок заметок успешно обновлен");
     }
+
 }

@@ -33,4 +33,8 @@ public class Note {
     private List<String> imageUrls = new ArrayList<>();
 
     private int position = 1;
+
+    @ManyToOne
+    @JoinColumn(name = "folder_id")
+    private Folder folder;
 }

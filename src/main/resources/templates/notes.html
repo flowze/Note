@@ -34,59 +34,122 @@
 </header>
 
 <main class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Мои заметки</h1>
-        <a href="/notes/new" class="btn btn-primary">Новая заметка</a>
-    </div>
+    <div class="row">
+        <!-- Сайдбар с папками -->
+        <div class="col-md-3">
+            <h4>Папки</h4>
+            <ul class="list-group">
+                <li class="list-group-item" th:classappend="${selectedFolderId == null} ? ' active'">
+                    <a th:href="@{/notes}" style="text-decoration: none; color: inherit;">Все заметки</a>
+                </li>
+                <li class="list-group-item d-flex align-items-center"
+                    th:each="folder : ${folders}"
+                    th:classappend="${folder.id == selectedFolderId} ? ' active'">
+                    <i class="bi bi-folder-fill me-2"></i>
+                    <a th:href="@{/notes(folderId=${folder.id})}"
+                       th:text="${folder.name}"
+                       class="text-decoration-none text-body"></a>
+                </li>
 
-    <div th:if="${notes != null and not #lists.isEmpty(notes)}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id ="notes-list">
+            </ul>
+            <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createFolderModal">
+                Новая папка
+            </button>
+        </div>
 
-        <div class="col" th:each="note : ${notes}" th:attr="data-id=${note.position}">
-            <div class="card h-100 shadow-sm">
-                <div th:if="${note.imageUrls != null and not #lists.isEmpty(note.imageUrls)}" class="carousel slide" th:id="'carousel-' + ${note.id}" data-bs-ride="carousel">
-                    <div class="carousel-inner">
-                        <div class="carousel-item" th:each="img, iterStat : ${note.imageUrls}" th:classappend="${iterStat.first} ? ' active'">
-                            <img th:src="@{${img}}"
-                                 class="d-block w-100 img-fluid cursor-zoom"
-                                 alt="Изображение заметки"
-                                 style="max-height: 200px; object-fit: contain;"
-                                 onclick="showFullImage(this.src)">
-                        </div>
+        <div class="modal fade" id="createFolderModal" tabindex="-1" aria-labelledby="createFolderModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createFolderModalLabel">Создать новую папку</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
                     </div>
-
-                    <button class="carousel-control-prev" type="button" th:data-bs-target="'#carousel-' + ${note.id}" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Предыдущее</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" th:data-bs-target="'#carousel-' + ${note.id}" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Следующее</span>
-                    </button>
-                </div>
-
-                <div class="card-body">
-                    <h5 class="card-title" th:text="${note.title}">Заголовок заметки</h5>
-                    <p class="card-text" th:text="${#strings.abbreviate(note.content, 100)}">
-                        Краткое содержание заметки...
-                    </p>
-                </div>
-                <div class="card-footer d-flex justify-content-between align-items-center">
-                    <div>
-                        <a th:href="@{/notes/edit/{id}(id=${note.id})}" class="btn btn-sm btn-outline-primary">Редактировать</a>
-                        <form th:action="@{/notes/delete/{id}(id=${note.id})}" method="post">
-                            <button th:href="@{/notes}" class="btn btn-sm btn-outline-danger"
-                                    onclick="return confirm('Вы уверены, что хотите удалить эту заметку?');">Удалить</button>
+                    <div class="modal-body">
+                        <form id="createFolderForm">
+                            <div class="mb-3">
+                                <label for="folderName" class="form-label">Имя папки</label>
+                                <input type="text" class="form-control" id="folderName" placeholder="Введите имя папки" required>
+                            </div>
                         </form>
+                        <div id="responseMessage" class="mt-2"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="button" class="btn btn-primary" id="saveFolderButton">Создать</button>
                     </div>
                 </div>
             </div>
-        </div >
+        </div>
+        <!-- Основной контент: список заметок -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>
+                    <span th:if="${selectedFolderId != null}"
+                          th:text="'Заметки в папке: ' + ${folders.stream().filter(f -> f.id == selectedFolderId).findFirst().orElse(new com.example.noteapp.model.Folder()).name}">
+                        Заметки
+                    </span>
+                    <span th:if="${selectedFolderId == null}">Мои заметки</span>
+                </h1>
+                <a href="/notes/new" class="btn btn-primary">Новая заметка</a>
+            </div>
 
-    </div>
+            <div th:if="${notes != null and not #lists.isEmpty(notes)}"
+                 class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="notes-list">
+                <div class="col" th:each="note : ${notes}" th:attr="data-id=${note.id}">
+                    <div class="card h-100 shadow-sm">
+                        <div th:if="${note.imageUrls != null and not #lists.isEmpty(note.imageUrls)}"
+                             class="carousel slide"
+                             th:id="'carousel-' + ${note.id}" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                <div class="carousel-item" th:each="img, iterStat : ${note.imageUrls}"
+                                     th:classappend="${iterStat.first} ? ' active'">
+                                    <img th:src="@{${img}}"
+                                         class="d-block w-100 img-fluid cursor-zoom"
+                                         alt="Изображение заметки"
+                                         style="max-height: 200px; object-fit: contain;"
+                                         onclick="showFullImage(this.src)">
+                                </div>
+                            </div>
 
-    <div th:if="${notes == null or #lists.isEmpty(notes)}" class="alert alert-info text-center mt-4">
-        <p>У вас пока нет заметок. Создайте первую!</p>
-        <a href="/notes/new" class="btn btn-success">Добавить заметку</a>
+                            <button class="carousel-control-prev" type="button"
+                                    th:data-bs-target="'#carousel-' + ${note.id}" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Предыдущее</span>
+                            </button>
+                            <button class="carousel-control-next" type="button"
+                                    th:data-bs-target="'#carousel-' + ${note.id}" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Следующее</span>
+                            </button>
+                        </div>
+
+                        <div class="card-body">
+                            <h5 class="card-title" th:text="${note.title}">Заголовок заметки</h5>
+                            <p class="card-text" th:text="${#strings.abbreviate(note.content, 100)}">
+                                Краткое содержание заметки...
+                            </p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <div>
+                                <a th:href="@{/notes/edit/{id}(id=${note.id})}" class="btn btn-sm btn-outline-primary">Редактировать</a>
+                                <form th:action="@{/notes/delete/{id}(id=${note.id})}" method="post">
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Вы уверены, что хотите удалить эту заметку?');">
+                                        Удалить
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${notes == null or #lists.isEmpty(notes)}"
+                 class="alert alert-info text-center mt-4">
+                <p>У вас пока нет заметок. Создайте первую!</p>
+                <a href="/notes/new" class="btn btn-success">Добавить заметку</a>
+            </div>
+        </div>
     </div>
 </main>
 
@@ -115,16 +178,12 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
-
-
 <script>
-
     document.addEventListener('DOMContentLoaded', function () {
         const el = document.getElementById('notes-list');
         new Sortable(el, {
             animation: 150,
             onEnd: function(evt) {
-
                 let orderedIds = [];
                 const cards = el.querySelectorAll('.col');
                 cards.forEach(card => {
@@ -148,11 +207,55 @@
             }
         });
     });
+
     function showFullImage(src) {
         const modal = new bootstrap.Modal(document.getElementById('imageModal'));
         document.getElementById('fullSizeImage').src = src;
         modal.show();
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+  const saveFolderButton = document.getElementById('saveFolderButton');
+  saveFolderButton.addEventListener('click', function () {
+    const folderNameElement = document.getElementById('folderName');
+    const folderName = folderNameElement.value.trim();
+    const responseMessageElement = document.getElementById('responseMessage');
+
+
+    if (!folderName) {
+      responseMessageElement.textContent = 'Введите имя папки';
+      return;
+    }
+
+    fetch('/folders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name: folderName })
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Ошибка сервера: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        responseMessageElement.textContent = 'Папка успешно создана!';
+
+        folderNameElement.value = "";
+
+        const modalElement = document.getElementById('createFolderModal');
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modalInstance.hide();
+
+      })
+      .catch(error => {
+        responseMessageElement.textContent = 'Ошибка при создании папки: ' + error.message;
+      });
+  });
+});
+
 </script>
 </body>
 </html>

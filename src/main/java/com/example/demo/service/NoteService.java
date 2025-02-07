@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 @Service
@@ -29,7 +30,6 @@ public class NoteService {
     }
 
     public List<Note> findByUser(User user) {
-
         List<Note> list = noteRepository.findByUser(user);
         list.sort(Comparator.comparingInt(Note::getPosition));
         return list;
@@ -71,10 +71,10 @@ public class NoteService {
     }
 
     public void createNote(Note note, List<MultipartFile> files) {
-        User user = userService.getCurrentUser();
-        note.setPosition(noteRepository.findByUser(user).size()+1);
-        note.setImageUrls(fileStorageService.saveFiles(files,user.getId()));
-        note.setUser(user);
+        User currentUser = userService.getCurrentUser();
+        note.setPosition(noteRepository.findByUser(currentUser).size()+1);
+        note.setImageUrls(fileStorageService.saveFiles(files,currentUser.getId()));
+        note.setUser(currentUser);
         this.save(note);
     }
 
@@ -92,16 +92,30 @@ public class NoteService {
     }
 
     @Transactional
+    @SneakyThrows
     public void updateOrder(List<String> orderedIds) {
-        User user = userService.getCurrentUser();
-        List<Note> allNotes = noteRepository.findByUser(user);
-        Map<Integer, Note> noteMap = allNotes.stream()
-                .collect(Collectors.toMap(Note::getPosition, note -> note));
-        for(int i = 0;i<orderedIds.size();i++){
-            int index = Integer.parseInt(orderedIds.get(i));
-            Note note = noteMap.get(index);
-            note.setPosition(i);
-            noteRepository.save(note);
-        }
+        User currentUser = userService.getCurrentUser();
+        List<Note> orderedNotes = orderedIds.stream()
+                .map(idStr -> {
+                    int noteId = Integer.parseInt(idStr);
+                     Note note = getOrElseThrow(noteId);
+                    if (!note.getUser().equals(currentUser)) {
+                        throw new RuntimeException("Нет доступа к заметке с id " + noteId);
+                    }
+                    return note;
+                })
+                .toList();
+        List<Integer> sortedPositions = orderedNotes.stream()
+                .map(Note::getPosition)
+                .sorted()
+                .toList();
+        final List<Note> updatedNotes = IntStream.range(0, orderedNotes.size())
+                .mapToObj(i -> {
+                    Note note = orderedNotes.get(i);
+                    note.setPosition(sortedPositions.get(i));
+                    return note;
+                })
+                .toList();
+        noteRepository.saveAll(updatedNotes);
     }
 }
