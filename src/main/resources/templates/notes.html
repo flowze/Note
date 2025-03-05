@@ -40,18 +40,18 @@
             <h4>Папки</h4>
             <ul class="list-group">
                 <li class="list-group-item" th:classappend="${selectedFolderId == null} ? ' active'">
-                    <a th:href="@{/notes}" style="text-decoration: none; color: inherit;">Все заметки</a>
+                    <a th:href="@{/notes}" class="d-block text-decoration-none text-body">Все заметки</a>
                 </li>
                 <li class="list-group-item d-flex align-items-center"
                     th:each="folder : ${folders}"
                     th:classappend="${folder.id == selectedFolderId} ? ' active'">
-                    <i class="bi bi-folder-fill me-2"></i>
-                    <a th:href="@{/notes(folderId=${folder.id})}"
-                       th:text="${folder.name}"
-                       class="text-decoration-none text-body"></a>
+                    <a th:href="@{/notes(folderId=${folder.id})}" class="d-flex align-items-center w-100 text-decoration-none text-body">
+                        <i class="bi bi-folder-fill me-2"></i>
+                        <span th:text="${folder.name}"></span>
+                    </a>
                 </li>
-
             </ul>
+
             <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createFolderModal">
                 Новая папка
             </button>

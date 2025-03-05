@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.model.Folder;
 import com.example.demo.model.Note;
 import com.example.demo.model.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,4 +11,6 @@ import java.util.List;
 @Repository
 public interface NoteRepository  extends JpaRepository<Note,Integer> {
     List<Note> findByUser(User user);
+
+    List<Note> findByFolderAndUser(Folder folder, User currentUser);
 }

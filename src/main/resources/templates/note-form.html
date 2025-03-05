@@ -40,6 +40,15 @@
       <textarea id="content" th:field="*{content}" class="form-control" rows="5" required></textarea>
     </div>
 
+    <!-- Новый блок для выбора папки -->
+    <div class="mb-3">
+      <label for="folder" class="form-label">Папка</label>
+      <select id="folder" th:field="*{folder}" class="form-select" required>
+        <option value="" disabled selected>Выберите папку</option>
+        <option th:each="folder : ${folders}" th:value="${folder.id}" th:text="${folder.name}"></option>
+      </select>
+    </div>
+
     <div id="imageUploadContainer">
       <div class="mb-3">
         <label class="form-label">Загрузите изображение</label>
@@ -53,6 +62,7 @@
     </div>
   </form>
 </main>
+
 
 
 <footer class="bg-light py-3 mt-5">

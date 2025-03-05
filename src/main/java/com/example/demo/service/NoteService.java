@@ -1,8 +1,10 @@
 package com.example.demo.service;
 
 import com.example.demo.aspects.CheckNoteAccess;
+import com.example.demo.model.Folder;
 import com.example.demo.model.Note;
 import com.example.demo.model.user.User;
+import com.example.demo.repository.FolderRepository;
 import com.example.demo.repository.NoteRepository;
 import com.example.demo.service.user.UserService;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,6 +25,7 @@ public class NoteService {
     private final NoteRepository noteRepository;
     private final UserService userService;
     private final FileStorageService fileStorageService;
+    private final FolderRepository folderRepository;
 
 
     public void save(Note note) {
@@ -118,4 +121,14 @@ public class NoteService {
                 .toList();
         noteRepository.saveAll(updatedNotes);
     }
+
+    public List<Note> findByFolder(String folderId) {
+        User currentUser = userService.getCurrentUser();
+        if(folderId == null || folderId.isEmpty()){
+            return noteRepository.findByUser(currentUser);
+        }
+        Folder folder = folderRepository.findById(Integer.valueOf(folderId)).orElseThrow();
+        return noteRepository.findByFolderAndUser(folder,currentUser);
+    }
+
 }

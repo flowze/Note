@@ -6,6 +6,7 @@ import com.example.demo.payload.request.ReorderRequest;
 import com.example.demo.security.service.UserDetailsImpl;
 import com.example.demo.service.FileStorageService;
 import com.example.demo.service.FolderService;
+import com.example.demo.service.NoteFolderService;
 import com.example.demo.service.NoteService;
 import com.example.demo.service.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -34,20 +35,24 @@ public class NoteController {
 
     private final UserService userService;
     private final FolderService folderService;
+    private final NoteFolderService noteFolderService;
     @Value("${file.upload-dir}")
     private String UPLOAD_DIR;
 
     @GetMapping("")
-    public String pict(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model){
+    public String pict(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model,
+                       @RequestParam(required = false) String folderId){
         User currentUser = userService.getCurrentUser();
-        model.addAttribute("notes", noteService.findByUser(currentUser));
+        model.addAttribute("notes", noteService.findByFolder(folderId));
         model.addAttribute("folders", folderService.findByUser(currentUser));
         return "notes";
     }
 
     @GetMapping("/new")
     public String showCreateForm(Model model){
+        User currentUser = userService.getCurrentUser();
         model.addAttribute("note", new Note());
+        model.addAttribute("folders", folderService.findByUser(currentUser));
         return "note-form";
     }
 
