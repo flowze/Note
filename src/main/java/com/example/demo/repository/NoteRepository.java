@@ -14,3 +14,6 @@ public interface NoteRepository  extends JpaRepository<Note,Integer> {
 
     List<Note> findByFolderAndUser(Folder folder, User currentUser);
 }
+
+
+
